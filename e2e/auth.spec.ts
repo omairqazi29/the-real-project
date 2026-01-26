@@ -21,7 +21,7 @@ test.describe('Authentication', () => {
     await page.getByRole('link', { name: 'Sign in' }).first().click()
 
     await expect(page).toHaveURL(/\/login/)
-    await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /welcome back/i })).toBeVisible()
   })
 
   test('can navigate to signup page', async ({ page }) => {
@@ -82,7 +82,7 @@ test.describe('Navigation', () => {
     await page.goto('/')
 
     // Check for feature cards
-    await expect(page.getByText(/brrr analysis/i)).toBeVisible()
+    await expect(page.getByText(/brrr analysis/i).first()).toBeVisible()
     await expect(page.getByText(/transparency/i).first()).toBeVisible()
   })
 
