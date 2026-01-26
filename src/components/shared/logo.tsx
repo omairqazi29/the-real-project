@@ -7,8 +7,8 @@ interface LogoProps {
   linkTo?: string
 }
 
-export function Logo({ className, showTagline = false, linkTo }: LogoProps) {
-  const LogoContent = () => (
+function LogoContent({ className, showTagline }: { className?: string; showTagline: boolean }) {
+  return (
     <div className={cn('flex items-center gap-2', className)}>
       {/* Logo Icon */}
       <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600">
@@ -38,16 +38,18 @@ export function Logo({ className, showTagline = false, linkTo }: LogoProps) {
       </div>
     </div>
   )
+}
 
+export function Logo({ className, showTagline = false, linkTo }: LogoProps) {
   if (linkTo) {
     return (
       <Link href={linkTo} className="focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-neutral-900 rounded-lg">
-        <LogoContent />
+        <LogoContent className={className} showTagline={showTagline} />
       </Link>
     )
   }
 
-  return <LogoContent />
+  return <LogoContent className={className} showTagline={showTagline} />
 }
 
 export function LogoIcon({ className }: { className?: string }) {

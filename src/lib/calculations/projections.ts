@@ -1,7 +1,7 @@
 import type { YearProjection, ScenarioResult } from '@/types/calculations'
 import type { Property } from '@/types/property'
 import { roundTo } from '@/lib/utils'
-import { getLoanBalanceAtMonth, getPrincipalPaidInYear, calculateMonthlyPI } from './mortgage'
+import { getLoanBalanceAtMonth } from './mortgage'
 import { calculateCashFlow, type CashFlowInputs } from './cashflow'
 import { calculateCashOnCash, calculateTotalROI, calculateIRR } from './returns'
 

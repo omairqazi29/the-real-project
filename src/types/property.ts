@@ -140,7 +140,7 @@ export interface Property {
   analyzed_at?: string | null
 }
 
-export interface PropertyFormData extends Omit<Property, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'analyzed_at' | 'calculated_monthly_cashflow' | 'calculated_cap_rate' | 'calculated_coc_return' | 'calculated_total_investment' | 'calculated_cash_left_in_deal'> {}
+export type PropertyFormData = Omit<Property, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'analyzed_at' | 'calculated_monthly_cashflow' | 'calculated_cap_rate' | 'calculated_coc_return' | 'calculated_total_investment' | 'calculated_cash_left_in_deal'>
 
 export const DEFAULT_REHAB_BUDGET: RehabBudget = {
   kitchen: 0,

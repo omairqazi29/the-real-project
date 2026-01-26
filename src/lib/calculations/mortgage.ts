@@ -110,7 +110,6 @@ export function getLoanBalanceAtMonth(
 
   const monthlyRate = annualRate / 100 / 12
   const n = years * 12
-  const monthlyPayment = calculateMonthlyPI(principal, annualRate, years)
 
   // Formula: Balance = P * [(1+r)^n - (1+r)^m] / [(1+r)^n - 1]
   const balance =
