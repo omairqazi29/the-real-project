@@ -14,6 +14,7 @@
 /coverage
 /playwright-report
 /test-results
+/blob-report
 
 # next.js
 /.next/
@@ -25,6 +26,7 @@
 # misc
 .DS_Store
 *.pem
+Thumbs.db
 
 # debug
 npm-debug.log*
@@ -32,8 +34,12 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # vercel
 .vercel
@@ -41,4 +47,21 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-.env*.local
+
+# IDE
+.idea/
+*.swp
+*.swo
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# supabase
+supabase/.branches
+supabase/.temp
+
+# Optional npm cache
+.npm
+
+# Optional eslint cache
+.eslintcache
