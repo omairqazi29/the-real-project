@@ -44,3 +44,12 @@ export {
   generatePropertyProjections,
   type ProjectionInputs,
 } from './projections'
+
+// Market scoring
+export {
+  calculateCashflowScore,
+  calculateAppreciationScore,
+  calculateStabilityScore,
+  calculateMarketGrade,
+  scoreMarket,
+} from './market-score'

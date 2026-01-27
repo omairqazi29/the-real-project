@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { PageHeader, Container } from '@/components/layout'
-import { PropertyList, PropertyFilters, type SortOption, type ViewMode } from '@/components/properties'
+import { PropertyList, PropertyFilters, StatusPipeline, type SortOption, type ViewMode } from '@/components/properties'
 import { Button } from '@/components/ui'
 import { Plus } from 'lucide-react'
 import type { Property } from '@/types/property'
@@ -131,11 +131,18 @@ export default function PropertiesPage() {
           onViewModeChange={setViewMode}
         />
 
-        <PropertyList
-          properties={filteredProperties}
-          loading={loading}
-          onAddProperty={() => router.push('/properties/new')}
-        />
+        {viewMode === 'pipeline' ? (
+          <StatusPipeline
+            properties={filteredProperties}
+            onPropertyClick={(id) => router.push(`/properties/${id}`)}
+          />
+        ) : (
+          <PropertyList
+            properties={filteredProperties}
+            loading={loading}
+            onAddProperty={() => router.push('/properties/new')}
+          />
+        )}
       </div>
     </Container>
   )
