@@ -8,13 +8,13 @@ import { PageHeader, Container } from '@/components/layout'
 import { StatusBadge } from '@/components/properties'
 import { Button, Card, CardContent, CardHeader, CardTitle, Skeleton, Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui'
 import { EquityChart, CashFlowChart, WaterfallChart } from '@/components/charts'
-import { DealSummaryCard } from '@/components/analysis'
+import { DealSummaryCard, ProjectionsTable, ScenarioComparison } from '@/components/analysis'
 import { calculatePropertyBRRR } from '@/lib/calculations/brrr'
-import { generatePropertyProjections } from '@/lib/calculations/projections'
+import { generatePropertyProjections, generateScenarios, type ProjectionInputs } from '@/lib/calculations/projections'
 import { formatCurrency, formatPercent } from '@/lib/format'
 import { Pencil, Trash2, ArrowLeft } from 'lucide-react'
 import type { Property } from '@/types/property'
-import type { BRRRResult, YearProjection } from '@/types/calculations'
+import type { BRRRResult, YearProjection, ScenarioResult } from '@/types/calculations'
 
 interface PropertyPageProps {
   params: Promise<{ id: string }>
@@ -29,6 +29,7 @@ export default function PropertyPage({ params }: PropertyPageProps) {
   const [deleting, setDeleting] = useState(false)
   const [brrrResult, setBrrrResult] = useState<BRRRResult | null>(null)
   const [projections, setProjections] = useState<YearProjection[]>([])
+  const [scenarios, setScenarios] = useState<ScenarioResult[]>([])
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -61,6 +62,45 @@ export default function PropertyPage({ params }: PropertyPageProps) {
         // Generate 10-year projections
         const projs = generatePropertyProjections(typedProperty, 10)
         setProjections(projs)
+
+        // Generate scenario comparisons
+        const purchasePrice = typedProperty.purchase_price
+        const downPaymentPercent = typedProperty.down_payment_percent
+        const downPayment = typedProperty.down_payment_amount ?? (purchasePrice * downPaymentPercent) / 100
+        const loanAmount = purchasePrice - downPayment
+        const closingCosts = (purchasePrice * typedProperty.closing_cost_percent) / 100 + typedProperty.closing_cost_fixed
+        const rehabTotal = typedProperty.rehab_budget_total + (typedProperty.holding_costs_monthly * typedProperty.rehab_timeline_months)
+        const totalCashInvested = downPayment + closingCosts + rehabTotal
+        let propertyTaxAnnual = typedProperty.property_tax_annual ?? 0
+        if (!propertyTaxAnnual && typedProperty.property_tax_rate) {
+          propertyTaxAnnual = (purchasePrice * typedProperty.property_tax_rate) / 100
+        }
+
+        const projInputs: ProjectionInputs = {
+          purchasePrice,
+          arv: typedProperty.arv ?? purchasePrice,
+          loanAmount,
+          interestRate: typedProperty.interest_rate,
+          loanTermYears: typedProperty.loan_term_years,
+          totalCashInvested,
+          rehabBudget: typedProperty.rehab_budget_total,
+          monthlyRent: typedProperty.monthly_rent ?? 0,
+          vacancyPercent: typedProperty.vacancy_percent,
+          maintenancePercent: typedProperty.maintenance_percent,
+          capexPercent: typedProperty.capex_percent,
+          managementPercent: typedProperty.management_percent,
+          insuranceMonthly: typedProperty.insurance_monthly,
+          propertyTaxAnnual,
+          hoaMonthly: typedProperty.hoa_monthly,
+          utilitiesMonthly: typedProperty.utilities_monthly,
+          otherExpensesMonthly: typedProperty.other_expenses_monthly,
+          pmiMonthly: typedProperty.pmi_monthly,
+          appreciationRate: typedProperty.appreciation_rate,
+          rentGrowthRate: typedProperty.rent_growth_rate,
+          expenseGrowthRate: typedProperty.expense_growth_rate,
+        }
+        const scenarioResults = generateScenarios(projInputs, 10)
+        setScenarios(scenarioResults)
       } catch (error) {
         console.error('Error fetching property:', error)
         router.push('/properties')
@@ -188,6 +228,7 @@ export default function PropertyPage({ params }: PropertyPageProps) {
           <TabsList>
             <TabsTrigger value="brrr">BRRR Analysis</TabsTrigger>
             <TabsTrigger value="projections">10-Year Projections</TabsTrigger>
+            <TabsTrigger value="scenarios">Scenarios</TabsTrigger>
             <TabsTrigger value="details">Property Details</TabsTrigger>
           </TabsList>
 
@@ -277,42 +318,11 @@ export default function PropertyPage({ params }: PropertyPageProps) {
               </div>
             </div>
 
-            {/* Projections Table */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Year-by-Year Projections</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left py-2 px-3">Year</th>
-                        <th className="text-right py-2 px-3">Property Value</th>
-                        <th className="text-right py-2 px-3">Loan Balance</th>
-                        <th className="text-right py-2 px-3">Total Equity</th>
-                        <th className="text-right py-2 px-3">Annual Cash Flow</th>
-                        <th className="text-right py-2 px-3">CoC Return</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {projections.map((proj) => (
-                        <tr key={proj.year} className="border-b border-border/50">
-                          <td className="py-2 px-3">{proj.year}</td>
-                          <td className="text-right py-2 px-3">{formatCurrency(proj.propertyValue)}</td>
-                          <td className="text-right py-2 px-3">{formatCurrency(proj.loanBalance)}</td>
-                          <td className="text-right py-2 px-3">{formatCurrency(proj.equityTotal)}</td>
-                          <td className={`text-right py-2 px-3 ${proj.annualCashFlow >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                            {formatCurrency(proj.annualCashFlow)}
-                          </td>
-                          <td className="text-right py-2 px-3">{formatPercent(proj.cocReturn)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
+            <ProjectionsTable projections={projections} />
+          </TabsContent>
+
+          <TabsContent value="scenarios" className="space-y-6 mt-6">
+            <ScenarioComparison scenarios={scenarios} />
           </TabsContent>
 
           <TabsContent value="details" className="space-y-6 mt-6">

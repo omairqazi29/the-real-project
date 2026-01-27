@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { PageHeader, Container } from '@/components/layout'
-import { PropertyList } from '@/components/properties'
+import { PropertyList, PropertyFilters, type SortOption, type ViewMode } from '@/components/properties'
 import { Button } from '@/components/ui'
 import { Plus } from 'lucide-react'
 import type { Property } from '@/types/property'
@@ -14,6 +14,13 @@ export default function PropertiesPage() {
   const supabase = createClient()
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
+
+  // Filter & sort state
+  const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
+  const [typeFilter, setTypeFilter] = useState('')
+  const [sortBy, setSortBy] = useState<SortOption>('newest')
+  const [viewMode, setViewMode] = useState<ViewMode>('grid')
 
   useEffect(() => {
     const fetchProperties = async () => {
@@ -46,6 +53,58 @@ export default function PropertiesPage() {
     fetchProperties()
   }, [supabase, router])
 
+  // Filter and sort properties
+  const filteredProperties = useMemo(() => {
+    let result = [...properties]
+
+    // Search
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase()
+      result = result.filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          p.address?.toLowerCase().includes(q) ||
+          p.city?.toLowerCase().includes(q) ||
+          p.state?.toLowerCase().includes(q) ||
+          p.zip?.toLowerCase().includes(q)
+      )
+    }
+
+    // Status filter
+    if (statusFilter) {
+      result = result.filter((p) => p.status === statusFilter)
+    }
+
+    // Type filter
+    if (typeFilter) {
+      result = result.filter((p) => p.property_type === typeFilter)
+    }
+
+    // Sort
+    switch (sortBy) {
+      case 'newest':
+        result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        break
+      case 'oldest':
+        result.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+        break
+      case 'price_high':
+        result.sort((a, b) => b.purchase_price - a.purchase_price)
+        break
+      case 'price_low':
+        result.sort((a, b) => a.purchase_price - b.purchase_price)
+        break
+      case 'cashflow':
+        result.sort((a, b) => (b.calculated_monthly_cashflow ?? 0) - (a.calculated_monthly_cashflow ?? 0))
+        break
+      case 'name':
+        result.sort((a, b) => a.name.localeCompare(b.name))
+        break
+    }
+
+    return result
+  }, [properties, searchQuery, statusFilter, typeFilter, sortBy])
+
   return (
     <Container size="xl">
       <PageHeader
@@ -58,11 +117,26 @@ export default function PropertiesPage() {
         </Button>
       </PageHeader>
 
-      <PropertyList
-        properties={properties}
-        loading={loading}
-        onAddProperty={() => router.push('/properties/new')}
-      />
+      <div className="space-y-4">
+        <PropertyFilters
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          statusFilter={statusFilter}
+          onStatusChange={setStatusFilter}
+          typeFilter={typeFilter}
+          onTypeChange={setTypeFilter}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+        />
+
+        <PropertyList
+          properties={filteredProperties}
+          loading={loading}
+          onAddProperty={() => router.push('/properties/new')}
+        />
+      </div>
     </Container>
   )
 }
