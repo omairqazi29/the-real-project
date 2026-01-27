@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { cn } from '@/lib/cn'
 import { formatCurrency, formatPercent } from '@/lib/format'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
-import { ChevronDown, ChevronUp, TrendingUp, TrendingDown, Info } from 'lucide-react'
+import { ChevronDown, ChevronUp, TrendingUp, TrendingDown } from 'lucide-react'
 import type { YearProjection } from '@/types/calculations'
 
 interface ProjectionsTableProps {
@@ -38,7 +38,6 @@ export function ProjectionsTable({ projections, className, showExpanded = false 
   })
 
   const lastYear = projections[projections.length - 1]
-  const firstYear = projections[0]
 
   // Calculate summary stats
   const totalCashFlow = lastYear?.cumulativeCashFlow ?? 0
@@ -46,7 +45,7 @@ export function ProjectionsTable({ projections, className, showExpanded = false 
   const avgCoCReturn = projections.reduce((sum, p) => sum + p.cocReturn, 0) / projections.length
   const finalROI = lastYear?.totalROI ?? 0
 
-  const SortIcon = ({ field }: { field: SortField }) => {
+  const renderSortIcon = (field: SortField) => {
     if (sortField !== field) return null
     return sortDirection === 'asc' ? (
       <ChevronUp className="h-3 w-3 inline ml-1" />
@@ -123,20 +122,20 @@ export function ProjectionsTable({ projections, className, showExpanded = false 
                   className="text-left py-3 px-3 cursor-pointer hover:bg-neutral-800/50 transition-colors"
                   onClick={() => handleSort('year')}
                 >
-                  Year<SortIcon field="year" />
+                  Year{renderSortIcon('year')}
                 </th>
                 <th
                   className="text-right py-3 px-3 cursor-pointer hover:bg-neutral-800/50 transition-colors"
                   onClick={() => handleSort('propertyValue')}
                 >
-                  Property Value<SortIcon field="propertyValue" />
+                  Property Value{renderSortIcon('propertyValue')}
                 </th>
                 <th className="text-right py-3 px-3">Loan Balance</th>
                 <th
                   className="text-right py-3 px-3 cursor-pointer hover:bg-neutral-800/50 transition-colors"
                   onClick={() => handleSort('equityTotal')}
                 >
-                  Total Equity<SortIcon field="equityTotal" />
+                  Total Equity{renderSortIcon('equityTotal')}
                 </th>
                 {expanded && (
                   <>
@@ -150,20 +149,20 @@ export function ProjectionsTable({ projections, className, showExpanded = false 
                   className="text-right py-3 px-3 cursor-pointer hover:bg-neutral-800/50 transition-colors"
                   onClick={() => handleSort('annualCashFlow')}
                 >
-                  Annual CF<SortIcon field="annualCashFlow" />
+                  Annual CF{renderSortIcon('annualCashFlow')}
                 </th>
                 <th className="text-right py-3 px-3">Cumulative CF</th>
                 <th
                   className="text-right py-3 px-3 cursor-pointer hover:bg-neutral-800/50 transition-colors"
                   onClick={() => handleSort('cocReturn')}
                 >
-                  CoC Return<SortIcon field="cocReturn" />
+                  CoC Return{renderSortIcon('cocReturn')}
                 </th>
                 <th
                   className="text-right py-3 px-3 cursor-pointer hover:bg-neutral-800/50 transition-colors"
                   onClick={() => handleSort('totalROI')}
                 >
-                  Total ROI<SortIcon field="totalROI" />
+                  Total ROI{renderSortIcon('totalROI')}
                 </th>
               </tr>
             </thead>
