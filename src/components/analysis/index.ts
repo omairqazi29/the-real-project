@@ -1,3 +1,5 @@
 export { DealSummaryCard } from './deal-summary-card'
 export { ProjectionsTable } from './projections-table'
 export { ScenarioComparison } from './scenario-comparison'
+export { ComparisonTable } from './comparison-table'
+export { SensitivityAnalysis } from './sensitivity-analysis'

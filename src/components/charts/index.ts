@@ -1,3 +1,5 @@
 export { EquityChart } from './equity-chart'
 export { CashFlowChart } from './cashflow-chart'
 export { WaterfallChart } from './waterfall-chart'
+export { ComparisonChart } from './comparison-chart'
+export { SensitivityChart } from './sensitivity-chart'
