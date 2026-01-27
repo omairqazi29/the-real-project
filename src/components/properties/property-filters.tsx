@@ -3,10 +3,10 @@
 import { useState } from 'react'
 import { cn } from '@/lib/cn'
 import { PROPERTY_STATUSES, PROPERTY_TYPES } from '@/lib/constants'
-import { Search, SlidersHorizontal, ArrowUpDown, LayoutGrid, List } from 'lucide-react'
+import { Search, SlidersHorizontal, ArrowUpDown, LayoutGrid, List, KanbanSquare } from 'lucide-react'
 
 export type SortOption = 'newest' | 'oldest' | 'price_high' | 'price_low' | 'cashflow' | 'name'
-export type ViewMode = 'grid' | 'list'
+export type ViewMode = 'grid' | 'list' | 'pipeline'
 
 interface PropertyFiltersProps {
   searchQuery: string
@@ -104,6 +104,17 @@ export function PropertyFilters({
             )}
           >
             <List className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => onViewModeChange('pipeline')}
+            className={cn(
+              'h-10 px-3 flex items-center transition-colors',
+              viewMode === 'pipeline'
+                ? 'bg-neutral-700 text-white'
+                : 'bg-neutral-800 text-neutral-400 hover:text-white'
+            )}
+          >
+            <KanbanSquare className="h-4 w-4" />
           </button>
         </div>
       </div>
