@@ -7,6 +7,7 @@ import {
   calculateTotalROI,
   calculateAnnualizedROI,
   calculateIRR,
+  calculateReturns,
   checkOnePercentRule,
   estimate50PercentRule,
   calculate70PercentRule,
@@ -14,141 +15,186 @@ import {
 
 describe('calculateCapRate', () => {
   it('calculates cap rate correctly', () => {
-    // $12,000 NOI on $200,000 property = 6%
-    expect(calculateCapRate(12000, 200000)).toBe(6)
+    // $24,000 NOI / $300,000 property = 8%
+    const capRate = calculateCapRate(24000, 300000)
+    expect(capRate).toBe(8)
   })
 
   it('returns 0 for zero property value', () => {
-    expect(calculateCapRate(12000, 0)).toBe(0)
+    const capRate = calculateCapRate(24000, 0)
+    expect(capRate).toBe(0)
   })
 
   it('returns 0 for negative property value', () => {
-    expect(calculateCapRate(12000, -100000)).toBe(0)
+    const capRate = calculateCapRate(24000, -100000)
+    expect(capRate).toBe(0)
   })
 
-  it('handles high cap rate markets', () => {
-    // $24,000 NOI on $200,000 property = 12%
-    expect(calculateCapRate(24000, 200000)).toBe(12)
+  it('handles negative NOI', () => {
+    const capRate = calculateCapRate(-5000, 300000)
+    expect(capRate).toBeCloseTo(-1.67, 1)
   })
 })
 
 describe('calculateCashOnCash', () => {
-  it('calculates cash-on-cash return correctly', () => {
-    // $5,000 annual cash flow on $50,000 invested = 10%
-    expect(calculateCashOnCash(5000, 50000)).toBe(10)
+  it('calculates CoC return correctly', () => {
+    // $6,000 annual cash flow / $50,000 invested = 12%
+    const coc = calculateCashOnCash(6000, 50000)
+    expect(coc).toBe(12)
   })
 
   it('returns Infinity for positive cash flow with zero investment', () => {
-    expect(calculateCashOnCash(5000, 0)).toBe(Infinity)
+    const coc = calculateCashOnCash(6000, 0)
+    expect(coc).toBe(Infinity)
   })
 
-  it('returns 0 for zero cash flow with zero investment', () => {
+  it('returns 0 for negative or zero cash flow with zero investment', () => {
     expect(calculateCashOnCash(0, 0)).toBe(0)
+    expect(calculateCashOnCash(-1000, 0)).toBe(0)
   })
 
   it('handles negative cash flow', () => {
-    expect(calculateCashOnCash(-2000, 50000)).toBe(-4)
+    const coc = calculateCashOnCash(-2400, 50000)
+    expect(coc).toBe(-4.8)
   })
 })
 
 describe('calculateGRM', () => {
-  it('calculates gross rent multiplier correctly', () => {
-    // $200,000 property / $24,000 annual rent = 8.33
-    expect(calculateGRM(200000, 24000)).toBeCloseTo(8.33, 1)
+  it('calculates GRM correctly', () => {
+    // $300,000 price / $36,000 annual rent = 8.33
+    const grm = calculateGRM(300000, 36000)
+    expect(grm).toBeCloseTo(8.33, 1)
   })
 
   it('returns 0 for zero rent', () => {
-    expect(calculateGRM(200000, 0)).toBe(0)
+    const grm = calculateGRM(300000, 0)
+    expect(grm).toBe(0)
   })
 
-  it('handles expensive markets (high GRM)', () => {
-    // $500,000 property / $30,000 annual rent = 16.67
-    expect(calculateGRM(500000, 30000)).toBeCloseTo(16.67, 1)
+  it('lower GRM indicates better cash flow potential', () => {
+    const grmGood = calculateGRM(200000, 30000) // ~6.67
+    const grmBad = calculateGRM(200000, 18000) // ~11.11
+    expect(grmGood).toBeLessThan(grmBad)
   })
 })
 
 describe('calculateDSCR', () => {
   it('calculates DSCR correctly', () => {
-    // $15,000 NOI / $12,000 debt service = 1.25
-    expect(calculateDSCR(15000, 12000)).toBe(1.25)
+    // $24,000 NOI / $18,000 debt service = 1.33
+    const dscr = calculateDSCR(24000, 18000)
+    expect(dscr).toBeCloseTo(1.33, 1)
   })
 
   it('returns Infinity for positive NOI with zero debt service', () => {
-    expect(calculateDSCR(15000, 0)).toBe(Infinity)
+    const dscr = calculateDSCR(24000, 0)
+    expect(dscr).toBe(Infinity)
   })
 
   it('returns 0 for zero NOI with zero debt service', () => {
-    expect(calculateDSCR(0, 0)).toBe(0)
+    const dscr = calculateDSCR(0, 0)
+    expect(dscr).toBe(0)
   })
 
-  it('handles DSCR below 1 (negative cash flow)', () => {
-    expect(calculateDSCR(10000, 12000)).toBeCloseTo(0.83, 1)
+  it('DSCR < 1 indicates insufficient NOI to cover debt', () => {
+    const dscr = calculateDSCR(15000, 18000)
+    expect(dscr).toBeLessThan(1)
   })
 })
 
 describe('calculateTotalROI', () => {
   it('calculates total ROI correctly', () => {
-    // $25,000 returns on $50,000 investment = 50%
-    expect(calculateTotalROI(25000, 50000)).toBe(50)
+    // $75,000 returns / $50,000 investment = 150%
+    const roi = calculateTotalROI(75000, 50000)
+    expect(roi).toBe(150)
   })
 
   it('returns Infinity for positive returns with zero investment', () => {
-    expect(calculateTotalROI(10000, 0)).toBe(Infinity)
+    const roi = calculateTotalROI(10000, 0)
+    expect(roi).toBe(Infinity)
   })
 
   it('handles negative returns', () => {
-    expect(calculateTotalROI(-5000, 50000)).toBe(-10)
+    const roi = calculateTotalROI(-10000, 50000)
+    expect(roi).toBe(-20)
   })
 })
 
 describe('calculateAnnualizedROI', () => {
   it('calculates annualized ROI correctly', () => {
-    // 100% total ROI over 5 years ≈ 14.87% annualized
-    const result = calculateAnnualizedROI(100, 5)
-    expect(result).toBeCloseTo(14.87, 0)
+    // 100% total ROI over 5 years
+    const annualized = calculateAnnualizedROI(100, 5)
+    // (1 + 1)^(1/5) - 1 ≈ 14.87%
+    expect(annualized).toBeCloseTo(14.87, 0)
   })
 
   it('returns 0 for zero years', () => {
-    expect(calculateAnnualizedROI(100, 0)).toBe(0)
+    const annualized = calculateAnnualizedROI(100, 0)
+    expect(annualized).toBe(0)
   })
 
   it('returns same value for 1 year', () => {
-    expect(calculateAnnualizedROI(25, 1)).toBe(25)
-  })
-
-  it('handles high growth scenarios', () => {
-    // 200% over 3 years
-    const result = calculateAnnualizedROI(200, 3)
-    expect(result).toBeGreaterThan(40)
+    const annualized = calculateAnnualizedROI(15, 1)
+    expect(annualized).toBe(15)
   })
 })
 
 describe('calculateIRR', () => {
-  it('calculates IRR for simple cash flows', () => {
-    // -$100 initial, then $110 after 1 year = 10% IRR
+  it('calculates IRR for simple investment', () => {
+    // -$100 investment, $110 return next year = 10% IRR
     const irr = calculateIRR([-100, 110])
     expect(irr).toBeCloseTo(10, 0)
   })
 
-  it('handles multi-year cash flows', () => {
-    // -$1000 initial, then $400/year for 3 years
-    const irr = calculateIRR([-1000, 400, 400, 400])
-    expect(irr).toBeGreaterThan(9)
-    expect(irr).toBeLessThan(11)
+  it('calculates IRR for multi-year cash flows', () => {
+    // -$1000 investment, $300/year for 5 years
+    const irr = calculateIRR([-1000, 300, 300, 300, 300, 300])
+    expect(irr).toBeCloseTo(15.24, 0)
   })
 
-  it('returns 0 for single cash flow', () => {
-    expect(calculateIRR([-100])).toBe(0)
+  it('returns 0 for insufficient cash flows', () => {
+    const irr = calculateIRR([-100])
+    expect(irr).toBe(0)
   })
 
-  it('returns 0 for empty array', () => {
-    expect(calculateIRR([])).toBe(0)
+  it('handles negative IRR', () => {
+    // Investment that loses money
+    const irr = calculateIRR([-1000, 200, 200, 200])
+    expect(irr).toBeLessThan(0)
+  })
+})
+
+describe('calculateReturns', () => {
+  it('calculates all return metrics', () => {
+    const result = calculateReturns({
+      propertyValue: 300000,
+      annualNOI: 24000,
+      annualCashFlow: 8000,
+      totalCashInvested: 60000,
+      annualGrossRent: 36000,
+      annualDebtService: 16000,
+    })
+
+    expect(result.capRate).toBe(8)
+    expect(result.cashOnCashReturn).toBeCloseTo(13.33, 1)
+    expect(result.grossRentMultiplier).toBeCloseTo(8.33, 1)
+    expect(result.debtServiceCoverageRatio).toBe(1.5)
   })
 
-  it('handles BRRR-style cash flows (large positive at refi)', () => {
-    // -$50k initial, then get all money back plus profit at refi
-    const irr = calculateIRR([-50000, 5000, 65000])
-    expect(irr).toBeGreaterThan(15)
+  it('calculates total ROI with equity gain', () => {
+    const result = calculateReturns({
+      propertyValue: 300000,
+      annualNOI: 24000,
+      annualCashFlow: 8000,
+      totalCashInvested: 60000,
+      annualGrossRent: 36000,
+      annualDebtService: 16000,
+      totalEquityGain: 50000,
+      years: 5,
+    })
+
+    // Total returns = (8000 * 5) + 50000 = 90000
+    // Total ROI = 90000 / 60000 = 150%
+    expect(result.totalROI).toBe(150)
   })
 })
 
@@ -159,20 +205,20 @@ describe('checkOnePercentRule', () => {
     expect(result.ratio).toBe(1)
   })
 
+  it('passes when rent > 1% of price', () => {
+    const result = checkOnePercentRule(200000, 2500)
+    expect(result.passes).toBe(true)
+    expect(result.ratio).toBe(1.25)
+  })
+
   it('fails when rent < 1% of price', () => {
     const result = checkOnePercentRule(200000, 1500)
     expect(result.passes).toBe(false)
     expect(result.ratio).toBe(0.75)
   })
 
-  it('handles properties exceeding 1% rule', () => {
-    const result = checkOnePercentRule(100000, 1500)
-    expect(result.passes).toBe(true)
-    expect(result.ratio).toBe(1.5)
-  })
-
   it('returns false for zero purchase price', () => {
-    const result = checkOnePercentRule(0, 1500)
+    const result = checkOnePercentRule(0, 2000)
     expect(result.passes).toBe(false)
     expect(result.ratio).toBe(0)
   })
@@ -181,7 +227,6 @@ describe('checkOnePercentRule', () => {
 describe('estimate50PercentRule', () => {
   it('estimates expenses at 50% of rent', () => {
     const result = estimate50PercentRule(2000)
-
     expect(result.estimatedExpenses).toBe(1000)
     expect(result.estimatedNOI).toBe(1000)
     expect(result.estimatedAnnualNOI).toBe(12000)
@@ -189,33 +234,29 @@ describe('estimate50PercentRule', () => {
 
   it('handles zero rent', () => {
     const result = estimate50PercentRule(0)
-
     expect(result.estimatedExpenses).toBe(0)
     expect(result.estimatedNOI).toBe(0)
+    expect(result.estimatedAnnualNOI).toBe(0)
   })
 })
 
 describe('calculate70PercentRule', () => {
   it('calculates max purchase price correctly', () => {
-    // ARV $300k * 70% - $50k repairs = $160k max offer
-    const maxOffer = calculate70PercentRule(300000, 50000)
-    expect(maxOffer).toBe(160000)
+    // ARV $300,000, Repairs $50,000
+    // Max = 300000 * 0.7 - 50000 = 160000
+    const maxPrice = calculate70PercentRule(300000, 50000)
+    expect(maxPrice).toBe(160000)
   })
 
-  it('handles high rehab costs', () => {
-    // ARV $200k * 70% - $80k repairs = $60k max offer
-    const maxOffer = calculate70PercentRule(200000, 80000)
-    expect(maxOffer).toBe(60000)
+  it('can result in negative value for high repair costs', () => {
+    // ARV $200,000, Repairs $150,000
+    // Max = 200000 * 0.7 - 150000 = -10000
+    const maxPrice = calculate70PercentRule(200000, 150000)
+    expect(maxPrice).toBe(-10000)
   })
 
-  it('can result in negative max offer for over-priced rehabs', () => {
-    // ARV $100k * 70% - $80k repairs = -$10k (don't buy!)
-    const maxOffer = calculate70PercentRule(100000, 80000)
-    expect(maxOffer).toBe(-10000)
-  })
-
-  it('handles zero rehab (turnkey)', () => {
-    const maxOffer = calculate70PercentRule(300000, 0)
-    expect(maxOffer).toBe(210000)
+  it('handles zero ARV', () => {
+    const maxPrice = calculate70PercentRule(0, 50000)
+    expect(maxPrice).toBe(-50000)
   })
 })

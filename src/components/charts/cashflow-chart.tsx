@@ -11,51 +11,39 @@ import {
   Legend,
   ReferenceLine,
 } from 'recharts'
-import type { YearProjection } from '@/types/calculations'
 import { formatCurrency } from '@/lib/format'
-import { ChartContainer } from './chart-container'
+import type { YearProjection } from '@/types/calculations'
 
 interface CashFlowChartProps {
   projections: YearProjection[]
-  showCumulative?: boolean
-  className?: string
 }
 
-export function CashFlowChart({
-  projections,
-  showCumulative = true,
-  className,
-}: CashFlowChartProps) {
+export function CashFlowChart({ projections }: CashFlowChartProps) {
   const data = projections.map((p) => ({
     year: `Year ${p.year}`,
-    'Annual Cash Flow': p.annualCashFlow,
-    'Cumulative Cash Flow': p.cumulativeCashFlow,
-    'Monthly Cash Flow': p.monthlyCashFlow,
+    annual: p.annualCashFlow,
+    cumulative: p.cumulativeCashFlow,
   }))
 
   return (
-    <ChartContainer
-      title="Cash Flow Projection"
-      description="Annual and cumulative cash flow over time"
-      className={className}
-    >
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart
-          data={data}
-          margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-        >
+    <div className="h-full w-full">
+      <h3 className="text-sm font-medium text-neutral-400 mb-2">Cash Flow Projections</h3>
+      <ResponsiveContainer width="100%" height="90%">
+        <LineChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#404040" />
           <XAxis
             dataKey="year"
             stroke="#737373"
             fontSize={12}
             tickLine={false}
+            axisLine={{ stroke: '#404040' }}
           />
           <YAxis
             stroke="#737373"
             fontSize={12}
             tickLine={false}
-            tickFormatter={(value) => formatCurrency(value, { compact: true })}
+            axisLine={{ stroke: '#404040' }}
+            tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
           />
           <Tooltip
             contentStyle={{
@@ -63,32 +51,37 @@ export function CashFlowChart({
               border: '1px solid #404040',
               borderRadius: '8px',
             }}
-            labelStyle={{ color: '#FAFAFA' }}
-            formatter={(value) => formatCurrency(value as number)}
+            labelStyle={{ color: '#fafafa' }}
+            formatter={(value, name) => [
+              formatCurrency((value as number) ?? 0),
+              name === 'annual' ? 'Annual Cash Flow' : 'Cumulative Cash Flow',
+            ]}
           />
-          <Legend />
+          <Legend
+            wrapperStyle={{ paddingTop: '10px' }}
+            formatter={(value) =>
+              value === 'annual' ? 'Annual Cash Flow' : 'Cumulative Cash Flow'
+            }
+          />
           <ReferenceLine y={0} stroke="#737373" strokeDasharray="3 3" />
           <Line
             type="monotone"
-            dataKey="Annual Cash Flow"
+            dataKey="annual"
             stroke="#22C55E"
             strokeWidth={2}
             dot={{ fill: '#22C55E', strokeWidth: 2 }}
             activeDot={{ r: 6 }}
           />
-          {showCumulative && (
-            <Line
-              type="monotone"
-              dataKey="Cumulative Cash Flow"
-              stroke="#3B82F6"
-              strokeWidth={2}
-              strokeDasharray="5 5"
-              dot={{ fill: '#3B82F6', strokeWidth: 2 }}
-              activeDot={{ r: 6 }}
-            />
-          )}
+          <Line
+            type="monotone"
+            dataKey="cumulative"
+            stroke="#3B82F6"
+            strokeWidth={2}
+            dot={{ fill: '#3B82F6', strokeWidth: 2 }}
+            activeDot={{ r: 6 }}
+          />
         </LineChart>
       </ResponsiveContainer>
-    </ChartContainer>
+    </div>
   )
 }

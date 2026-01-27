@@ -11,118 +11,85 @@ import {
   Cell,
   ReferenceLine,
 } from 'recharts'
-import type { BRRRResult } from '@/types/calculations'
 import { formatCurrency } from '@/lib/format'
-import { ChartContainer } from './chart-container'
+import type { BRRRResult } from '@/types/calculations'
 
 interface WaterfallChartProps {
   brrr: BRRRResult
-  className?: string
 }
 
-export function WaterfallChart({ brrr, className }: WaterfallChartProps) {
+export function WaterfallChart({ brrr }: WaterfallChartProps) {
   // Calculate running total for waterfall effect
+  const downPayment = brrr.downPayment || 0
+  const closingCosts = brrr.closingCosts || 0
+  const rehabBudget = brrr.rehabBudget || 0
+  const holdingCosts = brrr.holdingCosts || 0
+  const cashOut = brrr.netCashOut || 0
+  const cashLeft = brrr.cashLeftInDeal || 0
+
+  const startingCash = downPayment + closingCosts + rehabBudget + holdingCosts
+
   const data = [
     {
-      name: 'Starting Cash',
-      value: brrr.totalCashInvested,
-      isTotal: true,
-      color: '#DC2626',
-    },
-    {
       name: 'Down Payment',
-      value: -brrr.downPayment,
-      isTotal: false,
-      color: '#EF4444',
+      value: -downPayment,
+      fill: '#EF4444',
+      running: startingCash - downPayment,
     },
     {
       name: 'Closing Costs',
-      value: -brrr.closingCosts,
-      isTotal: false,
-      color: '#EF4444',
+      value: -closingCosts,
+      fill: '#EF4444',
+      running: startingCash - downPayment - closingCosts,
     },
     {
       name: 'Rehab',
-      value: -brrr.rehabBudget,
-      isTotal: false,
-      color: '#EF4444',
+      value: -rehabBudget,
+      fill: '#EF4444',
+      running: startingCash - downPayment - closingCosts - rehabBudget,
     },
     {
       name: 'Holding Costs',
-      value: -brrr.holdingCosts,
-      isTotal: false,
-      color: '#EF4444',
+      value: -holdingCosts,
+      fill: '#EF4444',
+      running: 0,
     },
     {
-      name: 'Refi Proceeds',
-      value: brrr.netCashOut,
-      isTotal: false,
-      color: '#22C55E',
+      name: 'Cash Out (Refi)',
+      value: cashOut,
+      fill: '#22C55E',
+      running: cashOut,
     },
     {
       name: 'Cash Left',
-      value: brrr.cashLeftInDeal,
-      isTotal: true,
-      color: brrr.infiniteReturn ? '#22C55E' : '#EAB308',
+      value: cashLeft,
+      fill: cashLeft <= 0 ? '#22C55E' : '#EAB308',
+      running: cashLeft,
     },
   ]
 
-  // Calculate start/end positions for waterfall bars
-  let runningTotal = 0
-  const chartData = data.map((item, index) => {
-    if (item.isTotal && index === 0) {
-      return {
-        ...item,
-        start: 0,
-        end: item.value,
-        displayValue: item.value,
-      }
-    }
-    if (item.isTotal) {
-      return {
-        ...item,
-        start: 0,
-        end: runningTotal,
-        displayValue: runningTotal,
-      }
-    }
-
-    const start = runningTotal
-    runningTotal += item.value
-    return {
-      ...item,
-      start: item.value >= 0 ? start : runningTotal,
-      end: item.value >= 0 ? runningTotal : start,
-      displayValue: Math.abs(item.value),
-    }
-  })
-
   return (
-    <ChartContainer
-      title="BRRR Capital Flow"
-      description="How your cash flows through the deal"
-      className={className}
-    >
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart
-          data={chartData}
-          margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-        >
+    <div className="h-full w-full">
+      <h3 className="text-sm font-medium text-neutral-400 mb-2">BRRR Capital Flow</h3>
+      <ResponsiveContainer width="100%" height="90%">
+        <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#404040" />
           <XAxis
             dataKey="name"
             stroke="#737373"
             fontSize={11}
             tickLine={false}
-            angle={-45}
+            axisLine={{ stroke: '#404040' }}
+            angle={-15}
             textAnchor="end"
-            height={80}
+            height={60}
           />
           <YAxis
             stroke="#737373"
             fontSize={12}
             tickLine={false}
-            tickFormatter={(value) => formatCurrency(value, { compact: true })}
+            axisLine={{ stroke: '#404040' }}
+            tickFormatter={(value) => `$${(Math.abs(value) / 1000).toFixed(0)}k`}
           />
           <Tooltip
             contentStyle={{
@@ -130,20 +97,17 @@ export function WaterfallChart({ brrr, className }: WaterfallChartProps) {
               border: '1px solid #404040',
               borderRadius: '8px',
             }}
-            labelStyle={{ color: '#FAFAFA' }}
-            formatter={(_value, _name, props) => [
-              formatCurrency((props as { payload: { value: number } }).payload.value),
-              '',
-            ]}
+            labelStyle={{ color: '#fafafa' }}
+            formatter={(value) => [formatCurrency(Math.abs((value as number) ?? 0)), 'Amount']}
           />
           <ReferenceLine y={0} stroke="#737373" />
-          <Bar dataKey="end" radius={[4, 4, 0, 0]}>
-            {chartData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.color} />
+          <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+            {data.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={entry.fill} />
             ))}
           </Bar>
         </BarChart>
       </ResponsiveContainer>
-    </ChartContainer>
+    </div>
   )
 }

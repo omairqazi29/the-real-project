@@ -8,10 +8,11 @@ import { PageHeader, Container } from '@/components/layout'
 import { StatusBadge } from '@/components/properties'
 import { Button, Card, CardContent, CardHeader, CardTitle, Skeleton, Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui'
 import { EquityChart, CashFlowChart, WaterfallChart } from '@/components/charts'
+import { DealSummaryCard } from '@/components/analysis'
 import { calculatePropertyBRRR } from '@/lib/calculations/brrr'
 import { generatePropertyProjections } from '@/lib/calculations/projections'
 import { formatCurrency, formatPercent } from '@/lib/format'
-import { Pencil, Trash2, ArrowLeft, TrendingUp, DollarSign, Percent, Home } from 'lucide-react'
+import { Pencil, Trash2, ArrowLeft } from 'lucide-react'
 import type { Property } from '@/types/property'
 import type { BRRRResult, YearProjection } from '@/types/calculations'
 
@@ -149,76 +150,38 @@ export default function PropertyPage({ params }: PropertyPageProps) {
           </div>
         </PageHeader>
 
-        {/* Key Metrics */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Cash on Cash Return
-              </CardTitle>
-              <Percent className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {brrrResult.infiniteReturn ? '∞' : formatPercent(brrrResult.postRefiCoCReturn)}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {brrrResult.infiniteReturn ? 'All cash recovered!' : 'Annual return on invested cash'}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Monthly Cash Flow
-              </CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className={`text-2xl font-bold ${brrrResult.monthlyCashFlow >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                {formatCurrency(brrrResult.postRefiCashFlow)}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                After all expenses & debt service
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Cap Rate
-              </CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {formatPercent(brrrResult.capRate)}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                NOI / Property Value
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Cash Left in Deal
-              </CardTitle>
-              <Home className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className={`text-2xl font-bold ${brrrResult.cashLeftInDeal <= 0 ? 'text-green-500' : 'text-yellow-500'}`}>
-                {formatCurrency(brrrResult.cashLeftInDeal)}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {brrrResult.cashLeftInDeal <= 0 ? 'Fully recovered + profit!' : 'Still invested after refi'}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Deal Summary with Data Transparency */}
+        <DealSummaryCard
+          purchase_price={property.purchase_price}
+          closing_cost_percent={property.closing_cost_percent}
+          closing_cost_fixed={property.closing_cost_fixed}
+          down_payment_percent={property.down_payment_percent}
+          down_payment_amount={property.down_payment_amount ?? null}
+          interest_rate={property.interest_rate}
+          loan_term_years={property.loan_term_years}
+          financing_type={property.financing_type}
+          rehab_budget_total={property.rehab_budget_total}
+          rehab_timeline_months={property.rehab_timeline_months}
+          holding_costs_monthly={property.holding_costs_monthly}
+          monthly_rent={property.monthly_rent ?? null}
+          vacancy_percent={property.vacancy_percent}
+          maintenance_percent={property.maintenance_percent}
+          capex_percent={property.capex_percent}
+          management_percent={property.management_percent}
+          insurance_monthly={property.insurance_monthly}
+          property_tax_annual={property.property_tax_annual ?? null}
+          property_tax_rate={property.property_tax_rate ?? null}
+          hoa_monthly={property.hoa_monthly}
+          utilities_monthly={property.utilities_monthly}
+          other_expenses_monthly={property.other_expenses_monthly}
+          arv={property.arv ?? null}
+          refi_ltv_percent={property.refi_ltv_percent}
+          refi_interest_rate={property.refi_interest_rate}
+          refi_loan_term_years={property.refi_loan_term_years}
+          refi_closing_cost_percent={property.refi_closing_cost_percent}
+          refi_closing_cost_fixed={property.refi_closing_cost_fixed}
+          appreciation_rate={property.appreciation_rate}
+        />
 
         {/* Analysis Tabs */}
         <Tabs defaultValue="brrr" className="w-full">

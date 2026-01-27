@@ -10,47 +10,41 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts'
-import type { YearProjection } from '@/types/calculations'
 import { formatCurrency } from '@/lib/format'
-import { ChartContainer } from './chart-container'
+import type { YearProjection } from '@/types/calculations'
 
 interface EquityChartProps {
   projections: YearProjection[]
-  className?: string
 }
 
-export function EquityChart({ projections, className }: EquityChartProps) {
+export function EquityChart({ projections }: EquityChartProps) {
   const data = projections.map((p) => ({
     year: `Year ${p.year}`,
-    'Forced Equity': p.equityForced,
-    'Appreciation': p.equityAppreciation,
-    'Principal Paydown': p.equityPrincipal,
+    forcedEquity: p.equityForced,
+    appreciation: p.equityAppreciation,
+    principal: p.equityPrincipal,
     total: p.equityTotal,
   }))
 
   return (
-    <ChartContainer
-      title="Equity Buildup"
-      description="10-year projection of equity growth by source"
-      className={className}
-    >
-      <ResponsiveContainer width="100%" height="100%">
-        <AreaChart
-          data={data}
-          margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-        >
+    <div className="h-full w-full">
+      <h3 className="text-sm font-medium text-neutral-400 mb-2">Equity Buildup Over Time</h3>
+      <ResponsiveContainer width="100%" height="90%">
+        <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#404040" />
           <XAxis
             dataKey="year"
             stroke="#737373"
             fontSize={12}
             tickLine={false}
+            axisLine={{ stroke: '#404040' }}
           />
           <YAxis
             stroke="#737373"
             fontSize={12}
             tickLine={false}
-            tickFormatter={(value) => formatCurrency(value, { compact: true })}
+            axisLine={{ stroke: '#404040' }}
+            tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
           />
           <Tooltip
             contentStyle={{
@@ -58,13 +52,33 @@ export function EquityChart({ projections, className }: EquityChartProps) {
               border: '1px solid #404040',
               borderRadius: '8px',
             }}
-            labelStyle={{ color: '#FAFAFA' }}
-            formatter={(value) => formatCurrency(value as number)}
+            labelStyle={{ color: '#fafafa' }}
+            formatter={(value, name) => [
+              formatCurrency((value as number) ?? 0),
+              name === 'forcedEquity'
+                ? 'Forced Equity'
+                : name === 'appreciation'
+                  ? 'Appreciation'
+                  : name === 'principal'
+                    ? 'Principal Paydown'
+                    : 'Total',
+            ]}
           />
-          <Legend />
+          <Legend
+            wrapperStyle={{ paddingTop: '10px' }}
+            formatter={(value) =>
+              value === 'forcedEquity'
+                ? 'Forced Equity'
+                : value === 'appreciation'
+                  ? 'Appreciation'
+                  : value === 'principal'
+                    ? 'Principal Paydown'
+                    : value
+            }
+          />
           <Area
             type="monotone"
-            dataKey="Forced Equity"
+            dataKey="forcedEquity"
             stackId="1"
             stroke="#DC2626"
             fill="#DC2626"
@@ -72,7 +86,7 @@ export function EquityChart({ projections, className }: EquityChartProps) {
           />
           <Area
             type="monotone"
-            dataKey="Appreciation"
+            dataKey="appreciation"
             stackId="1"
             stroke="#F97316"
             fill="#F97316"
@@ -80,7 +94,7 @@ export function EquityChart({ projections, className }: EquityChartProps) {
           />
           <Area
             type="monotone"
-            dataKey="Principal Paydown"
+            dataKey="principal"
             stackId="1"
             stroke="#EAB308"
             fill="#EAB308"
@@ -88,6 +102,6 @@ export function EquityChart({ projections, className }: EquityChartProps) {
           />
         </AreaChart>
       </ResponsiveContainer>
-    </ChartContainer>
+    </div>
   )
 }
