@@ -12,7 +12,7 @@ import { DealSummaryCard, ProjectionsTable, ScenarioComparison } from '@/compone
 import { calculatePropertyBRRR } from '@/lib/calculations/brrr'
 import { generatePropertyProjections, generateScenarios, type ProjectionInputs } from '@/lib/calculations/projections'
 import { formatCurrency, formatPercent } from '@/lib/format'
-import { Pencil, Trash2, ArrowLeft } from 'lucide-react'
+import { Pencil, Trash2, ArrowLeft, Download } from 'lucide-react'
 import type { Property } from '@/types/property'
 import type { BRRRResult, YearProjection, ScenarioResult } from '@/types/calculations'
 
@@ -177,6 +177,12 @@ export default function PropertyPage({ params }: PropertyPageProps) {
         >
           <div className="flex items-center gap-3">
             <StatusBadge status={property.status} />
+            <Button variant="outline" asChild>
+              <Link href={`/properties/${id}/export`}>
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Link>
+            </Button>
             <Button variant="outline" asChild>
               <Link href={`/properties/${id}/edit`}>
                 <Pencil className="h-4 w-4 mr-2" />
