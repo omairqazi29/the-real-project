@@ -1,23 +1,23 @@
 import { test, expect } from '@playwright/test'
 
-test.describe('Settings Pages', () => {
-  // These test the pages render (auth is mocked/bypassed in E2E for page structure)
-  // In a real E2E environment with auth, we'd login first
-
-  test('settings page loads with navigation cards', async ({ page }) => {
-    // Navigate to settings (will redirect to login without auth)
+test.describe('Settings - Unauthenticated Access', () => {
+  test('settings page redirects to login', async ({ page }) => {
     await page.goto('/settings')
-    // In production, this redirects to login. We verify the redirect works.
-    await expect(page).toHaveURL(/\/(settings|login)/)
+    await expect(page).toHaveURL(/\/login/)
   })
 
-  test('default assumptions page exists', async ({ page }) => {
+  test('settings defaults page redirects to login', async ({ page }) => {
     await page.goto('/settings/defaults')
-    await expect(page).toHaveURL(/\/(settings\/defaults|login)/)
+    await expect(page).toHaveURL(/\/login/)
   })
 
-  test('profile page exists', async ({ page }) => {
+  test('settings profile page redirects to login', async ({ page }) => {
     await page.goto('/settings/profile')
-    await expect(page).toHaveURL(/\/(settings\/profile|login)/)
+    await expect(page).toHaveURL(/\/login/)
+  })
+
+  test('redirect preserves settings path', async ({ page }) => {
+    await page.goto('/settings')
+    await expect(page).toHaveURL(/\/login\?redirect=%2Fsettings/)
   })
 })
