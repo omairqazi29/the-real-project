@@ -1,22 +1,13 @@
 import { test, expect } from '@playwright/test'
 
-test.describe('Compare Page', () => {
-  test('compare page loads', async ({ page }) => {
+test.describe('Compare - Unauthenticated Access', () => {
+  test('compare page redirects to login', async ({ page }) => {
     await page.goto('/compare')
-    // Should either show compare page or redirect to login
-    await expect(page).toHaveURL(/\/(compare|login)/)
+    await expect(page).toHaveURL(/\/login/)
   })
 
-  test('compare page shows empty state for unauthenticated users', async ({ page }) => {
+  test('redirect preserves compare path', async ({ page }) => {
     await page.goto('/compare')
-
-    const url = page.url()
-    if (url.includes('/login')) {
-      expect(url).toContain('/login')
-      return
-    }
-
-    // If on compare page, should show some content
-    await expect(page.locator('body')).toBeVisible()
+    await expect(page).toHaveURL(/\/login\?redirect=%2Fcompare/)
   })
 })
