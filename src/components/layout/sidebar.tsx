@@ -20,7 +20,7 @@ interface SidebarProps {
 }
 
 const navigation = [
-  { name: 'Dashboard', href: '/properties', icon: Home },
+  { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Properties', href: '/properties', icon: Building2 },
   { name: 'Markets', href: '/markets', icon: Map },
   { name: 'Compare', href: '/compare', icon: GitCompare },
@@ -43,11 +43,11 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
       {/* Logo */}
       <div className="flex h-16 items-center border-b border-neutral-800 px-4">
         {collapsed ? (
-          <Link href="/properties">
+          <Link href="/dashboard">
             <LogoIcon />
           </Link>
         ) : (
-          <Logo linkTo="/properties" />
+          <Logo linkTo="/dashboard" />
         )}
       </div>
 

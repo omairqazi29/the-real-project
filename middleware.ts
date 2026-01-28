@@ -33,7 +33,7 @@ export async function middleware(req: NextRequest) {
   } = await supabase.auth.getUser()
 
   // Define protected routes
-  const protectedPaths = ['/properties', '/markets', '/compare', '/settings']
+  const protectedPaths = ['/dashboard', '/properties', '/markets', '/compare', '/settings']
   const isProtectedPath = protectedPaths.some((path) =>
     req.nextUrl.pathname.startsWith(path)
   )
@@ -53,7 +53,12 @@ export async function middleware(req: NextRequest) {
 
   // Redirect authenticated users away from auth pages
   if (isAuthPath && user) {
-    return NextResponse.redirect(new URL('/properties', req.url))
+    return NextResponse.redirect(new URL('/dashboard', req.url))
+  }
+
+  // Redirect authenticated users from landing page to dashboard
+  if (req.nextUrl.pathname === '/' && user) {
+    return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 
   return supabaseResponse

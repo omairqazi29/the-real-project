@@ -6,7 +6,7 @@ import { cn } from '@/lib/cn'
 import { Home, Building2, Map, GitCompare, Settings } from 'lucide-react'
 
 const navigation = [
-  { name: 'Home', href: '/properties', icon: Home },
+  { name: 'Home', href: '/dashboard', icon: Home },
   { name: 'Properties', href: '/properties', icon: Building2 },
   { name: 'Markets', href: '/markets', icon: Map },
   { name: 'Compare', href: '/compare', icon: GitCompare },
